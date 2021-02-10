@@ -21,8 +21,8 @@ class Calculator:
 
     def get_week_stats(self):
         return sum([spent.amount for spent in self.records
-                    if self.date_now >= spent.date >= self.date_now -
-                    dt.timedelta(days=7)])
+                    if self.date_now >= spent.date >= self.date_now
+                    - dt.timedelta(days=7)])
 
 
 class Record:
@@ -95,7 +95,7 @@ class CaloriesCalculator(Calculator):
             return (f'Сегодня можно съесть что-нибудь ещё, но с общей '
                     f'калорийностью не более {remainder} кКал')
         elif self.limit <= eaten:
-            return f'Хватит есть!'
+            return 'Хватит есть!'
 
 
 if __name__ == '__main__':
