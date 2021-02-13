@@ -4,25 +4,24 @@ import datetime as dt
 class Calculator:
     def __init__(self, limit):
         self.limit = limit
-        self.remainder = self.limit
-
-        # Список записей.
         self.records = []
 
-        # Работа с датой.
-        self.date_now = dt.datetime.now().date()
-
-    def add_record(self, calc_class):
-        self.records.append(calc_class)
+    def add_record(self, record_class):
+        self.records.append(record_class)
 
     def get_today_stats(self):
-        return sum([spent.amount for spent in self.records
-                    if spent.date == self.date_now])
+        date_now = dt.datetime.now().date()
+        return sum(record.amount for record in self.records
+                   if record.date == date_now)
 
     def get_week_stats(self):
-        return sum([spent.amount for spent in self.records
-                    if self.date_now >= spent.date >= self.date_now
-                    - dt.timedelta(days=7)])
+        date_now = dt.datetime.now().date()
+        weekly_timedelta = date_now - dt.timedelta(days=7)
+        return sum(n.amount for n in self.records if date_now
+                   >= n.date > weekly_timedelta)
+
+    def today_remained(self):
+        return self.limit - self.get_today_stats()
 
 
 class Record:
@@ -30,29 +29,27 @@ class Record:
     def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
-        self.date = date
-        if self.date:
-            if type(self.date) == str:
-                self.date = dt.datetime.strptime(self.date, '%d.%m.%Y').date()
+
+        if date is not None:
+            if type(date) == str:
+                date = dt.datetime.strptime(date, '%d.%m.%Y').date()
+            else:
+                date = dt.datetime.date(date)
         else:
-            self.date = dt.datetime.now().date()
+            date = dt.datetime.now().date()
+        self.date = date
 
     def __str__(self):
         return f'{self.amount}, {self.comment}, {self.date}'
 
 
 class CashCalculator(Calculator):
-    # Курс валют.
     USD_RATE = 74.04
     EURO_RATE = 89.62
     RUB_RATE = 1
 
-    def __init__(self, limit):
-        super().__init__(limit)
-
     def get_today_cash_remained(self, currency='rub'):
 
-        # Конвертация валют.
         exchange = {
             'rub': {
                 'rate': self.RUB_RATE,
@@ -68,33 +65,28 @@ class CashCalculator(Calculator):
             },
         }
 
-        limit_rate = abs(round((self.limit - self.get_today_stats())
-                               / exchange[currency]['rate'], 2))
+        limit_rate = round(self.today_remained()
+                           / exchange[currency]['rate'], 2)
         limit_type = exchange[currency]['type']
 
-        costs = self.get_today_stats()
-
-        if self.limit > costs > 0:
-            return f'На сегодня осталось {limit_rate} {limit_type}'
-        elif self.limit == costs:
+        if limit_rate == 0:
             return 'Денег нет, держись'
-        elif self.limit < costs:
-            return f'Денег нет, держись: твой долг - {limit_rate} {limit_type}'
+        elif limit_rate > 0:
+            return f'На сегодня осталось {limit_rate} {limit_type}'
+        else:
+            return (f'Денег нет, держись: твой долг - {abs(limit_rate)} '
+                    f'{limit_type}')
 
 
 class CaloriesCalculator(Calculator):
-    def __init__(self, limit):
-        super().__init__(limit)
 
     def get_calories_remained(self):
+        remainder = self.today_remained()
 
-        eaten = self.get_today_stats()
-        remainder = self.limit - eaten
-
-        if self.limit > eaten:
-            return (f'Сегодня можно съесть что-нибудь ещё, но с общей '
+        if remainder > 0:
+            return ('Сегодня можно съесть что-нибудь ещё, но с общей '
                     f'калорийностью не более {remainder} кКал')
-        elif self.limit <= eaten:
+        else:
             return 'Хватит есть!'
 
 
