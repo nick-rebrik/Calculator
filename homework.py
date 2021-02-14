@@ -17,8 +17,8 @@ class Calculator:
     def get_week_stats(self):
         date_now = dt.datetime.now().date()
         weekly_timedelta = date_now - dt.timedelta(days=7)
-        return sum(n.amount for n in self.records if date_now
-                   >= n.date > weekly_timedelta)
+        return sum(record.amount for record in self.records
+                   if weekly_timedelta < record.date <= date_now)
 
     def today_remained(self):
         return self.limit - self.get_today_stats()
@@ -31,10 +31,7 @@ class Record:
         self.comment = comment
 
         if date is not None:
-            if type(date) == str:
-                date = dt.datetime.strptime(date, '%d.%m.%Y').date()
-            else:
-                date = dt.datetime.date(date)
+            date = dt.datetime.strptime(date, '%d.%m.%Y').date()
         else:
             date = dt.datetime.now().date()
         self.date = date
@@ -49,6 +46,9 @@ class CashCalculator(Calculator):
     RUB_RATE = 1
 
     def get_today_cash_remained(self, currency='rub'):
+
+        if self.today_remained() == 0:
+            return 'Денег нет, держись'
 
         exchange = {
             'rub': {
@@ -67,15 +67,14 @@ class CashCalculator(Calculator):
 
         limit_rate = round(self.today_remained()
                            / exchange[currency]['rate'], 2)
+        abs_limit_rate = abs(limit_rate)
         limit_type = exchange[currency]['type']
 
-        if limit_rate == 0:
-            return 'Денег нет, держись'
-        elif limit_rate > 0:
-            return f'На сегодня осталось {limit_rate} {limit_type}'
-        else:
-            return (f'Денег нет, держись: твой долг - {abs(limit_rate)} '
+        if limit_rate < 0:
+            return (f'Денег нет, держись: твой долг - {abs_limit_rate} '
                     f'{limit_type}')
+
+        return f'На сегодня осталось {limit_rate} {limit_type}'
 
 
 class CaloriesCalculator(Calculator):
@@ -86,8 +85,8 @@ class CaloriesCalculator(Calculator):
         if remainder > 0:
             return ('Сегодня можно съесть что-нибудь ещё, но с общей '
                     f'калорийностью не более {remainder} кКал')
-        else:
-            return 'Хватит есть!'
+
+        return 'Хватит есть!'
 
 
 if __name__ == '__main__':
