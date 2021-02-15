@@ -1,5 +1,7 @@
 import datetime as dt
 
+DATE_FORMAT = '%d.%m.%Y'
+
 
 class Calculator:
     def __init__(self, limit):
@@ -31,7 +33,7 @@ class Record:
         self.comment = comment
 
         if date is not None:
-            date = dt.datetime.strptime(date, '%d.%m.%Y').date()
+            date = dt.datetime.strptime(date, DATE_FORMAT).date()
         else:
             date = dt.datetime.now().date()
         self.date = date
@@ -45,9 +47,10 @@ class CashCalculator(Calculator):
     EURO_RATE = 89.62
     RUB_RATE = 1
 
-    def get_today_cash_remained(self, currency='rub'):
+    def get_today_cash_remained(self, currency):
+        remainder = self.today_remained()
 
-        if self.today_remained() == 0:
+        if remainder == 0:
             return 'Денег нет, держись'
 
         exchange = {
@@ -65,12 +68,11 @@ class CashCalculator(Calculator):
             },
         }
 
-        limit_rate = round(self.today_remained()
-                           / exchange[currency]['rate'], 2)
-        abs_limit_rate = abs(limit_rate)
+        limit_rate = round(remainder / exchange[currency]['rate'], 2)
         limit_type = exchange[currency]['type']
 
         if limit_rate < 0:
+            abs_limit_rate = abs(limit_rate)
             return (f'Денег нет, держись: твой долг - {abs_limit_rate} '
                     f'{limit_type}')
 
