@@ -33,10 +33,9 @@ class Record:
         self.comment = comment
 
         if date is not None:
-            date = dt.datetime.strptime(date, DATE_FORMAT).date()
+            self.date = dt.datetime.strptime(date, DATE_FORMAT).date()
         else:
-            date = dt.datetime.now().date()
-        self.date = date
+            self.date = dt.datetime.now().date()
 
     def __str__(self):
         return f'{self.amount}, {self.comment}, {self.date}'
