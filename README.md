@@ -1,2 +1,4 @@
-# hw_python_oop
-Sprint 2. Итоговый проект.
+# Cash & Calories calculator
+The cash and calorie calculator was written while learning the basics of OOP.
+
+
